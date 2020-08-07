@@ -1,0 +1,96 @@
+#+TITLE: Uso de behaviours en Elixir
+#+AUTHOR: Erick Navarro
+
+* Algo sobre mi
+
+Erick Navarro
+
+[[https://twitter.com/erickgnavar][@erickgnavar]]
+
+[[https://erick.navarro.io][erick.navarro.io]]
+
+* ¿Qué es un behaviour?
+
+Es una especificación de funciones que deben ser implementadas por los módulos que usen el =behaviour=.
+
+De la documentación de Elixir definen 2 funcionalidades:
+
+- Definir un conjunto de funciones que tienen que ser implementadas por un módulo
+- "Asegurar" que un módulo implemente todas las funciones definidas
+
+* ¿Por qué son útiles?
+
+- Permiten definir un contrato explícito sobre una funcionalidad a usar dentro del proyecto
+- Permiten tener diferentes adaptadores que podemos cambiar según la necesidad sin el temor de romper todo
+- Mejoran la experiencia al hacer tests (mox)
+
+* Casos de uso
+
+- Como =wrapper= de servicios externos, consultas a una API
+- Definir un contrato para las implementaciones, Ecto lo usa para definir lo que debe implementar el adaptador de cada base de datos
+
+* ¿Cómo definimos un =behaviour=?
+
+#+begin_src elixir
+defmodule Example.ApiSpec do
+  @doc """
+  some doc about this awesome function
+  """
+  @callback make_magic(String.t()) :: {:ok, map} | {:error, String.t()}
+
+  @doc """
+  another awesome function that makes magic
+  """
+  @callback another_function(integer) :: {:ok, map} | {:error, String.t()}
+end
+#+end_src
+
+* ¿Cómo lo implementamos?
+
+#+begin_src elixir
+defmodule Example.ApiService do
+  @behaviour Example.ApiSpec
+
+  @impl true
+  def make_magic(param) do
+    # do stuff
+  end
+end
+#+end_src
+
+* ¿Cómo lo configuramos?
+
+En =config/{dev,test,prod}.exs=
+
+#+begin_src elixir
+config :example, :api, Example.ApiService
+#+end_src
+
+* ¿Cómo lo usamos?
+
+#+begin_src elixir
+api = Application.get_env(:example, :api)
+
+api.make_magic()
+#+end_src
+
+* Demo
+
+:)
+
+* ¿Qué se podría mejorar de ellos en Elixir?
+
+- Tener una verificación más rígida de las implementaciones de un =behaviour=
+- Poder darle un nombre a los parámetros en un =@callback=
+
+* Recomendaciones de uso
+
+- No ignorar los warnings cuando un =behaviour= no está siendo implementado en su totalidad
+- De ser posible usar estructuras en la definición de parámetros en los =@callback=
+- Tener implementaciones livianas para uso durante desarrollo, implementaciones basadas en memoria ayudan mucho
+
+* Recursos
+
+- https://elixir-lang.org/getting-started/typespecs-and-behaviours.html#behaviours
+- http://blog.plataformatec.com.br/2015/10/mocks-and-explicit-contracts/
+- https://elixirschool.com/en/lessons/advanced/behaviours/
